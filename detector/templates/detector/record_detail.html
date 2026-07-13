@@ -1,0 +1,75 @@
+{% extends "detector/base.html" %}
+
+{% block title %}{{ record.patient_name }} &middot; RetinaScan{% endblock %}
+
+{% block content %}
+    <div class="card">
+        <div class="result-meta">
+            <span><strong>Patient:</strong> {{ record.patient_name }}</span>
+            <span class="code">{{ record.patient_code }}</span>
+            <span><strong>Age/Sex:</strong> {{ record.patient_age }}{% if record.patient_gender %} / {{ record.get_patient_gender_display }}{% endif %}</span>
+            <span><strong>Scan Date:</strong> {{ record.created_at|date:"M j, Y, g:i A" }}</span>
+            <span style="margin-left:auto; display:flex; gap:8px;">
+                <a class="btn-outline" href="{% url 'records' %}?name={{ record.patient_name|urlencode }}">History</a>
+                <button type="button" class="primary" onclick="window.print()">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
+                    Print Report
+                </button>
+            </span>
+        </div>
+
+        <div class="image-pair">
+            <figure>
+                <div class="frame">
+                    <img src="{{ record.image.url }}" alt="Uploaded retina image">
+                </div>
+                <figcaption>Original Fundus Image</figcaption>
+            </figure>
+            <figure>
+                <div class="frame">
+                    {% if record.heatmap %}
+                        <img src="{{ record.heatmap.url }}" alt="Grad-CAM heatmap">
+                    {% endif %}
+                    <span class="frame-tag">{% if record.predicted_label == "No_DR" %}No anomalies{% else %}Anomalies detected{% endif %}</span>
+                </div>
+                <figcaption>AI Heatmap (Grad-CAM)</figcaption>
+            </figure>
+        </div>
+
+        <div class="result-grid" style="grid-template-columns: 1fr;">
+            <div class="diagnosis-panel" data-severity="{{ record.predicted_label }}">
+                <p class="diagnosis-eyebrow">Primary Diagnosis</p>
+                <p class="diagnosis-title">{{ record.predicted_label }}</p>
+                <p class="diagnosis-subtitle">{{ clinical_name }} &mdash; {{ description }}</p>
+
+                <p class="confidence-heading">Confidence Scores</p>
+                <div class="meter-list">
+                    {% for p in record.probabilities %}
+                        <div class="meter-row{% if p.label == record.predicted_label %} is-top{% endif %}" data-severity="{{ p.label }}">
+                            <span class="meter-name">{{ p.clinical_name|default:p.label }}</span>
+                            <span class="meter-pct">{{ p.confidence|floatformat:1 }}%</span>
+                            <div class="meter-track">
+                                <div class="meter-fill" style="width: {{ p.confidence|floatformat:0 }}%;"></div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-row">
+            <div class="stat-card">
+                <p class="stat-label">Model Confidence</p>
+                <p class="stat-value">{{ record.confidence|floatformat:1 }}%</p>
+            </div>
+            <div class="stat-card">
+                <p class="stat-label">Diagnosis Stage</p>
+                <p class="stat-value">{{ stage_rank }} of 5</p>
+            </div>
+            <div class="stat-card">
+                <p class="stat-label">Processing Time</p>
+                <p class="stat-value">{% if record.processing_time_ms %}{{ record.processing_time_ms|floatformat:0 }} ms{% else %}&mdash;{% endif %}</p>
+            </div>
+        </div>
+    </div>
+{% endblock %}

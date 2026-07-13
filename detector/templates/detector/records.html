@@ -1,0 +1,118 @@
+{% extends "detector/base.html" %}
+
+{% block title %}Patient Records &middot; RetinaScan{% endblock %}
+
+{% block content %}
+    <div class="page-head">
+        <div>
+            <h2>Patient Records</h2>
+            <p>Central repository for diabetic retinopathy diagnostic history.</p>
+        </div>
+        <a class="btn-outline" href="{% url 'records_export' %}?name={{ name_query|urlencode }}&min_age={{ min_age_query|urlencode }}&condition={{ condition_query|urlencode }}">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M4 21h16"/></svg>
+            Export CSV
+        </a>
+    </div>
+
+    <form class="filter-bar" method="get">
+        <div class="field">
+            <label for="name">Patient Name or ID</label>
+            <input type="text" id="name" name="name" value="{{ name_query }}" placeholder="e.g. John Doe">
+        </div>
+        <div class="field">
+            <label for="min_age">Min Age</label>
+            <input type="number" id="min_age" name="min_age" value="{{ min_age_query }}" placeholder="18" min="0">
+        </div>
+        <div class="field">
+            <label for="condition">Condition Stage</label>
+            <select id="condition" name="condition">
+                <option value="">All Stages</option>
+                {% for value, label in condition_choices %}
+                    <option value="{{ value }}" {% if value == condition_query %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <a class="btn-outline" href="{% url 'records' %}">Reset</a>
+        <button type="submit" class="primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+            Apply Filters
+        </button>
+    </form>
+
+    <div class="table-card">
+        {% if page_obj.object_list %}
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Analysis</th>
+                            <th>Patient Name / ID</th>
+                            <th>Age / Sex</th>
+                            <th>Condition Stage</th>
+                            <th>AI Confidence</th>
+                            <th>Last Analyzed</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in page_obj.object_list %}
+                            <tr class="record-row">
+                                <td class="thumb-group">
+                                    <img src="{{ record.image.url }}" alt="Original">
+                                    {% if record.heatmap %}
+                                        <img src="{{ record.heatmap.url }}" alt="Grad-CAM heatmap">
+                                    {% endif %}
+                                </td>
+                                <td class="patient-cell">
+                                    <strong>{{ record.patient_name }}</strong>
+                                    <span>{{ record.patient_code }}</span>
+                                </td>
+                                <td>{{ record.patient_age }} / {{ record.get_patient_gender_display|default:"—" }}</td>
+                                <td><span class="severity-badge" data-severity="{{ record.predicted_label }}">{{ record.predicted_label }}</span></td>
+                                <td>
+                                    <div class="confidence-cell">
+                                        <div class="mini-track"><div class="mini-fill" style="width: {{ record.confidence|floatformat:0 }}%;"></div></div>
+                                        <span class="mini-pct">{{ record.confidence|floatformat:1 }}%</span>
+                                    </div>
+                                </td>
+                                <td>{{ record.created_at|date:"M j, Y" }}</td>
+                                <td>
+                                    <a class="view-link" href="{% url 'record_detail' record.id %}" title="View record">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="table-footer">
+                <span>Showing {{ page_obj.start_index }}&ndash;{{ page_obj.end_index }} of {{ page_obj.paginator.count }} records &middot; 10 per page</span>
+                <div class="pagination">
+                    {% if page_obj.has_previous %}
+                        <a href="?page={{ page_obj.previous_page_number }}&name={{ name_query|urlencode }}&min_age={{ min_age_query|urlencode }}&condition={{ condition_query|urlencode }}">&lsaquo;</a>
+                    {% else %}
+                        <span class="disabled">&lsaquo;</span>
+                    {% endif %}
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if num == page_obj.number %}
+                            <span class="current">{{ num }}</span>
+                        {% elif num == 1 or num == page_obj.paginator.num_pages or num|add:"-1" == page_obj.number or num|add:"1" == page_obj.number %}
+                            <a href="?page={{ num }}&name={{ name_query|urlencode }}&min_age={{ min_age_query|urlencode }}&condition={{ condition_query|urlencode }}">{{ num }}</a>
+                        {% elif num == 2 or num == page_obj.paginator.num_pages|add:"-1" %}
+                            <span>&hellip;</span>
+                        {% endif %}
+                    {% endfor %}
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}&name={{ name_query|urlencode }}&min_age={{ min_age_query|urlencode }}&condition={{ condition_query|urlencode }}">&rsaquo;</a>
+                    {% else %}
+                        <span class="disabled">&rsaquo;</span>
+                    {% endif %}
+                </div>
+            </div>
+        {% else %}
+            <div class="empty-state">No records match these filters yet.</div>
+        {% endif %}
+    </div>
+{% endblock %}
