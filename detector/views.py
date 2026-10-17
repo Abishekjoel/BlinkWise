@@ -5,10 +5,18 @@ from django.core.paginator import Paginator
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
 
+from .report import build_report_pdf
 from .ml_model import SEVERITY_INFO, predict_with_heatmap
 from .models import CONDITION_CHOICES, Diagnosis
 
 PAGE_SIZE = 10
+
+
+def landing(request):
+    return render(request, "detector/landing.html", {
+        "total_scans": Diagnosis.objects.count(),
+        "active_page": "home",
+    })
 
 
 def index(request):
@@ -122,6 +130,14 @@ def record_detail(request, pk):
         "stage_rank": info.get("rank", 0) + 1,
         "active_page": "records",
     })
+
+
+def record_report(request, pk):
+    record = get_object_or_404(Diagnosis, pk=pk)
+    pdf = build_report_pdf(record)
+    response = HttpResponse(pdf, content_type="application/pdf")
+    response["Content-Disposition"] = f'attachment; filename="BlinkWise_Report_{record.patient_code}.pdf"'
+    return response
 
 
 def settings_page(request):

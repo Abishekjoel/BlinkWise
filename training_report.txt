@@ -1,0 +1,19 @@
+Test accuracy: 72.15%
+
+                precision    recall  f1-score   support
+
+          Mild      0.295     0.756     0.425        41
+      Moderate      0.670     0.473     0.555       150
+         No_DR      0.953     0.963     0.958       271
+Proliferate_DR      0.467     0.318     0.378        44
+        Severe      0.450     0.310     0.367        29
+
+      accuracy                          0.721       535
+     macro avg      0.567     0.564     0.537       535
+  weighted avg      0.756     0.721     0.724       535
+
+[[ 31   2   5   2   1]
+ [ 55  71   7  10   7]
+ [  9   1 261   0   0]
+ [  9  18   0  14   3]
+ [  1  14   1   4   9]]

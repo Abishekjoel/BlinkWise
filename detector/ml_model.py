@@ -53,30 +53,25 @@ def get_model():
 
 
 def get_grad_model():
-    """Rebuilds a functional sub-model exposing the last Conv2D layer's
-    activations alongside the final prediction, reusing the trained
-    weights of the (Sequential) model loaded in get_model(). A Sequential
-    model loaded from disk has no `.input`/`.output` until it is traced
-    through the functional API, so we retrace it once here rather than
-    against the original model.
+    """Builds a sub-model returning (last conv feature map, final prediction)
+    for Grad-CAM. The trained model wraps a convolutional backbone as a
+    single nested layer, so the backbone's own output (its last conv
+    feature map) is exposed and the remaining head layers are replayed on top.
     """
     global _grad_model
     if _grad_model is None:
         model = get_model()
-        last_conv_name = None
-        for layer in model.layers:
-            if isinstance(layer, tf.keras.layers.Conv2D):
-                last_conv_name = layer.name
-        if last_conv_name is None:
-            raise ValueError("No Conv2D layer found for Grad-CAM")
-
         inputs = tf.keras.Input(shape=(settings.IMG_SIZE, settings.IMG_SIZE, 3))
         x = inputs
         conv_output = None
-        for layer in model.layers:
-            x = layer(x)
-            if layer.name == last_conv_name:
+        for layer in model.layers[1:]:
+            if isinstance(layer, tf.keras.Model):
+                x = layer(x)
                 conv_output = x
+            else:
+                x = layer(x)
+        if conv_output is None:
+            raise ValueError("No convolutional backbone found for Grad-CAM")
         _grad_model = tf.keras.Model(inputs, [conv_output, x])
     return _grad_model
 
@@ -85,7 +80,6 @@ def preprocess_image(image_path):
     img = cv2.imread(image_path)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     img = cv2.resize(img, (settings.IMG_SIZE, settings.IMG_SIZE))
-    img = cv2.GaussianBlur(img, (5, 5), 0)
     img = (img / 255.0).astype(np.float32)
     return np.expand_dims(img, axis=0)
 

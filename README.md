@@ -1,4 +1,4 @@
-# 👁️ BlinkWise
+j# 👁️ BlinkWise
 
 **BlinkWise** is an AI-powered web application designed to assist in the early detection of **Diabetic Retinopathy** from retinal fundus images. By leveraging deep learning and computer vision, BlinkWise analyzes retinal scans and predicts the severity of diabetic retinopathy, helping support timely diagnosis and treatment.
 
@@ -128,3 +128,10 @@ Special thanks to the open-source community and publicly available retinal image
 ### *AI-Powered Diabetic Retinopathy Detection*
 
 **Helping detect diabetic eye disease—one blink at a time.**
+
+
+
+1.Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+
+2..\venv\Scripts\Activate.ps1
+3.python manage.py runserver

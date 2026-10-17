@@ -123,4 +123,4 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 # Trained model used by the detector app
 MODEL_PATH = BASE_DIR / 'dr_eye_disease_model.h5'
-IMG_SIZE = 128
+IMG_SIZE = 224

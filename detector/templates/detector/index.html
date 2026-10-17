@@ -1,86 +1,118 @@
 {% extends "detector/base.html" %}
 
-{% block title %}New Analysis &middot; RetinaScan{% endblock %}
+{% block title %}New Analysis &middot; BlinkWise{% endblock %}
 
 {% block content %}
     <div class="page-head">
         <div>
             <h2>New Analysis</h2>
-            <p>Initialize a new diagnostic session by entering patient metadata and uploading fundus imagery.</p>
+            <p>Enter the patient details, drop in a retinal fundus photo, and let the AI grade it in seconds.</p>
         </div>
     </div>
 
-    <div class="card">
-        <form method="post" enctype="multipart/form-data" id="upload-form">
-            {% csrf_token %}
+    <form method="post" enctype="multipart/form-data" id="upload-form">
+        {% csrf_token %}
+        <div class="analyze-grid">
 
-            <div class="card-head">
-                <div class="card-title">
-                    <span class="icon-chip">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12h6M9 16h6M9 8h1"/><path d="M7 3h7l5 5v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/></svg>
-                    </span>
-                    Patient Information
+            <div class="card step-card">
+                <div class="step">
+                    <div class="step-num">1</div>
+                    <div class="step-body">
+                        <h3>Patient details</h3>
+                        <div class="field">
+                            <label for="patient_name">Full name</label>
+                            <input type="text" id="patient_name" name="patient_name" placeholder="e.g. John Doe" required>
+                        </div>
+                        <div class="field-row" style="margin-top:12px">
+                            <div class="field">
+                                <label for="patient_age">Age</label>
+                                <input type="number" id="patient_age" name="patient_age" min="0" max="120" placeholder="Years" required>
+                            </div>
+                            <div class="field">
+                                <label for="patient_gender">Gender</label>
+                                <select id="patient_gender" name="patient_gender">
+                                    <option value="">Select</option>
+                                    <option value="M">Male</option>
+                                    <option value="F">Female</option>
+                                    <option value="O">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-num">2</div>
+                    <div class="step-body">
+                        <h3>Upload fundus image</h3>
+                        <p style="margin:0;color:var(--text-muted);font-size:.82rem">Use a sharp, well-centred, evenly lit retinal photograph (JPG or PNG).</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-num">3</div>
+                    <div class="step-body">
+                        <h3>Get the result</h3>
+                        <p style="margin:0;color:var(--text-muted);font-size:.82rem">Stage, confidence for all 5 grades, and a Grad-CAM heatmap showing where the model looked.</p>
+                    </div>
                 </div>
             </div>
 
-            <div class="patient-fields">
-                <div class="field">
-                    <label for="patient_name">Patient Full Name</label>
-                    <input type="text" id="patient_name" name="patient_name" placeholder="e.g. John Doe" required>
+            <div class="card scan-card">
+                <div class="scan-head">
+                    <h3>Fundus image</h3>
+                    <span class="format-badge">JPG / PNG</span>
                 </div>
-                <div class="field">
-                    <label for="patient_age">Age</label>
-                    <input type="number" id="patient_age" name="patient_age" min="0" max="120" placeholder="Years" required>
-                </div>
-                <div class="field">
-                    <label for="patient_gender">Biological Gender</label>
-                    <select id="patient_gender" name="patient_gender">
-                        <option value="">Select Gender</option>
-                        <option value="M">Male</option>
-                        <option value="F">Female</option>
-                        <option value="O">Other</option>
-                    </select>
+
+                <label class="dropzone" id="dropzone" for="image-input">
+                    <div class="dz-empty">
+                        <div class="dz-orb">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </div>
+                        <div class="primary-text">Drop a retinal image here</div>
+                        <div class="secondary-text">or click to browse your files. The image is analysed locally on this server.</div>
+                        <div class="dz-tips"><span>Well centred</span><span>Good lighting</span><span>In focus</span></div>
+                    </div>
+                    <div class="dz-preview">
+                        <div class="eye-frame">
+                            <img id="preview-img" alt="Selected retinal image">
+                            <div class="scanline"></div>
+                            <div class="crosshair"></div>
+                        </div>
+                        <div class="file-chip">
+                            <b id="filename-text"></b>
+                            <button type="button" id="clear-btn">Change image</button>
+                        </div>
+                    </div>
+                    <input type="file" name="image" id="image-input" accept="image/*" required>
+                </label>
+
+                <div class="scan-foot">
+                    <button type="submit" class="primary" id="submit-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+                        Analyze image
+                    </button>
                 </div>
             </div>
+        </div>
+    </form>
 
-            <div class="card-head" style="margin-top: 8px;">
-                <div class="card-title">
-                    <span class="icon-chip">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg>
-                    </span>
-                    Fundus Image Acquisition
-                </div>
-                <span class="format-badge">JPG / PNG Supported</span>
-            </div>
-
-            <label class="dropzone" id="dropzone" for="image-input">
-                <div class="upload-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 16V4M12 4l-4 4M12 4l4 4"/>
-                        <path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/>
-                    </svg>
-                </div>
-                <div class="primary-text">Click or drag images to upload</div>
-                <div class="secondary-text">High-resolution retinal fundus photographs are required for accurate analysis. For best results, ensure images are well-centered and properly illuminated.</div>
-                <input type="file" name="image" id="image-input" accept="image/*" required>
-            </label>
-
-            <div id="filename-row">
-                <span id="filename-text"></span>
-            </div>
-
-            <div class="dropzone-actions">
-                <button type="submit" class="primary" id="submit-btn">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
-                    Analyze
-                </button>
-                <button type="button" class="outline" id="clear-btn">Clear Selection</button>
-            </div>
-        </form>
+    <div class="analyzing" id="analyzing">
+        <div class="an-eye">
+            <img id="an-img" alt="">
+            <div class="an-ring"></div><div class="an-ring r2"></div>
+        </div>
+        <p class="an-title">Analyzing retina&hellip;</p>
+        <p class="an-status" id="an-status">Preparing image</p>
+        <div class="an-bar"><i id="an-bar"></i></div>
+        <ul class="an-steps" id="an-steps">
+            <li>Preprocessing fundus image</li>
+            <li>Running the neural network</li>
+            <li>Grading severity across 5 stages</li>
+            <li>Generating Grad-CAM heatmap</li>
+        </ul>
     </div>
 
     {% if error %}
-        <div class="card">
+        <div class="card" style="margin-top:18px">
             <div class="error-banner">
                 <strong>Couldn't analyze image:</strong>&nbsp;{{ error }}
             </div>
@@ -88,36 +120,34 @@
     {% endif %}
 
     {% if result %}
-        <div class="card">
+        <div class="card" style="margin-top:18px">
             <div class="result-meta">
                 <span><strong>Patient:</strong> {{ diagnosis.patient_name }}</span>
                 <span class="code">{{ diagnosis.patient_code }}</span>
                 <span><strong>Age/Sex:</strong> {{ diagnosis.patient_age }}{% if diagnosis.patient_gender %} / {{ diagnosis.get_patient_gender_display }}{% endif %}</span>
                 <span><strong>Analyzed:</strong> {{ diagnosis.created_at|date:"M j, Y, g:i A" }}</span>
                 <span><a class="text-link" href="{% url 'record_detail' diagnosis.id %}">View full record &rarr;</a></span>
+                <span style="margin-left:auto"><a class="btn-outline" style="background:var(--grad);color:#fff;border:none" href="{% url 'record_report' diagnosis.id %}"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M4 21h16"/></svg> Generate Report</a></span>
             </div>
 
             <div class="result-grid">
-                <div class="image-pair">
-                    <figure>
-                        <div class="frame">
-                            <img src="{{ diagnosis.image.url }}" alt="Uploaded retina image">
-                        </div>
-                        <figcaption>Original Fundus Image</figcaption>
-                    </figure>
-                    <figure>
-                        <div class="frame">
-                            <img src="{{ diagnosis.heatmap.url }}" alt="Grad-CAM heatmap">
-                            <span class="frame-tag">{% if result.label == "No_DR" %}No anomalies{% else %}Anomalies detected{% endif %}</span>
-                        </div>
-                        <figcaption>AI Heatmap (Grad-CAM)</figcaption>
-                    </figure>
+                <div>
+                    <div class="compare" id="compare">
+                        <img src="{{ diagnosis.heatmap.url }}" alt="Grad-CAM heatmap">
+                        <div class="top"><img src="{{ diagnosis.image.url }}" alt="Uploaded retina image"></div>
+                        <span class="tag l">Original</span>
+                        <span class="tag r">AI heatmap</span>
+                        <div class="handle" id="compare-handle"></div>
+                    </div>
+                    <p class="compare-hint">Drag the slider to compare the scan with the Grad-CAM heatmap &middot; {% if result.label == "No_DR" %}No anomalies{% else %}Anomalies highlighted{% endif %}</p>
                 </div>
 
                 <div class="diagnosis-panel" data-severity="{{ result.label }}">
                     <p class="diagnosis-eyebrow">Primary Diagnosis</p>
                     <p class="diagnosis-title">{{ result.label }}</p>
                     <p class="diagnosis-subtitle">{{ result.clinical_name }}</p>
+                    <div class="big-conf" data-count="{{ result.confidence|floatformat:1 }}">0<small>% confidence</small></div>
+                    <p class="diagnosis-subtitle" style="margin-top:8px">{{ result.description }}</p>
 
                     <p class="confidence-heading">Confidence Scores</p>
                     <div class="meter-list">
@@ -134,21 +164,6 @@
                 </div>
             </div>
         </div>
-    {% else %}
-        <div class="empty-state-card">
-            <div class="icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 15 3-4 3 2 4-6"/></svg>
-            </div>
-            <h3>Awaiting Diagnostic Data</h3>
-            <p>Once an analysis is initiated, the automated diagnostic results, heatmaps, and clinical findings will be populated in this area.</p>
-            <div class="skeleton-row">
-                <div class="skeleton-block"></div>
-                <div class="skeleton-block"></div>
-                <div class="skeleton-block"></div>
-            </div>
-            <div class="skeleton-bar"></div>
-            <div class="skeleton-bar short"></div>
-        </div>
     {% endif %}
 {% endblock %}
 
@@ -156,48 +171,95 @@
 <script>
     const dropzone = document.getElementById('dropzone');
     const input = document.getElementById('image-input');
-    const filenameRow = document.getElementById('filename-row');
+    const preview = document.getElementById('preview-img');
     const filenameText = document.getElementById('filename-text');
     const submitBtn = document.getElementById('submit-btn');
     const clearBtn = document.getElementById('clear-btn');
     const form = document.getElementById('upload-form');
+    let previewUrl = '';
 
     function showFile(file) {
         if (!file) return;
+        if (previewUrl) URL.revokeObjectURL(previewUrl);
+        previewUrl = URL.createObjectURL(file);
+        preview.src = previewUrl;
         filenameText.textContent = file.name;
-        filenameRow.classList.add('is-visible');
+        dropzone.classList.add('has-file');
     }
-
     input.addEventListener('change', () => showFile(input.files[0]));
 
-    ['dragover', 'dragenter'].forEach(evt => {
-        dropzone.addEventListener(evt, (e) => {
-            e.preventDefault();
-            dropzone.classList.add('is-dragover');
-        });
-    });
-    ['dragleave', 'drop'].forEach(evt => {
-        dropzone.addEventListener(evt, (e) => {
-            e.preventDefault();
-            dropzone.classList.remove('is-dragover');
-        });
-    });
+    ['dragover', 'dragenter'].forEach(evt => dropzone.addEventListener(evt, (e) => {
+        e.preventDefault(); dropzone.classList.add('is-dragover');
+    }));
+    ['dragleave', 'drop'].forEach(evt => dropzone.addEventListener(evt, (e) => {
+        e.preventDefault(); dropzone.classList.remove('is-dragover');
+    }));
     dropzone.addEventListener('drop', (e) => {
         const file = e.dataTransfer.files[0];
-        if (file) {
-            input.files = e.dataTransfer.files;
-            showFile(file);
-        }
+        if (file) { input.files = e.dataTransfer.files; showFile(file); }
     });
-
-    clearBtn.addEventListener('click', () => {
+    clearBtn.addEventListener('click', (e) => {
+        e.preventDefault(); e.stopPropagation();
         input.value = '';
-        filenameRow.classList.remove('is-visible');
+        dropzone.classList.remove('has-file');
     });
 
+    // Analyzing animation: shown while the server processes the upload.
     form.addEventListener('submit', () => {
         submitBtn.disabled = true;
-        submitBtn.textContent = 'Analyzing…';
+        dropzone.classList.add('is-scanning');
+        document.getElementById('an-img').src = previewUrl;
+        document.getElementById('analyzing').classList.add('is-on');
+
+        const labels = ['Preprocessing image…', 'Running neural network…', 'Grading severity…', 'Generating heatmap…'];
+        const items = document.querySelectorAll('#an-steps li');
+        const status = document.getElementById('an-status');
+        const bar = document.getElementById('an-bar');
+        let i = 0;
+        const tick = () => {
+            items.forEach((li, n) => { li.className = n < i ? 'done' : (n === i ? 'now' : ''); });
+            status.textContent = labels[Math.min(i, labels.length - 1)];
+            bar.style.width = Math.min(92, (i + 1) * 23) + '%';
+            if (i < items.length - 1) i++;
+        };
+        tick();
+        setInterval(tick, 1400);
     });
+
+    // Result: count-up confidence + before/after slider
+    document.querySelectorAll('.big-conf').forEach(el => {
+        const target = parseFloat(el.dataset.count), t0 = performance.now();
+        (function step(t) {
+            const p = Math.min(1, (t - t0) / 1200), v = target * (1 - Math.pow(1 - p, 3));
+            el.firstChild.nodeValue = v.toFixed(1);
+            if (p < 1) requestAnimationFrame(step);
+        })(t0);
+    });
+
+    const compare = document.getElementById('compare');
+    if (compare) {
+        const top = compare.querySelector('.top'), handle = document.getElementById('compare-handle');
+        const setPct = (pct) => {
+            pct = Math.max(0, Math.min(100, pct));
+            top.style.clipPath = 'inset(0 ' + (100 - pct) + '% 0 0)';
+            handle.style.left = pct + '%';
+        };
+        const setX = (x) => {
+            const r = compare.getBoundingClientRect();
+            setPct((x - r.left) / r.width * 100);
+        };
+        let drag = false;
+        compare.addEventListener('pointerdown', (e) => { drag = true; setX(e.clientX); compare.setPointerCapture(e.pointerId); });
+        compare.addEventListener('pointermove', (e) => { if (drag) setX(e.clientX); });
+        compare.addEventListener('pointerup', () => { drag = false; });
+        // intro sweep
+        const start = performance.now();
+        (function sweep(t) {
+            const p = Math.min(1, (t - start) / 1600);
+            setPct(50 + 35 * Math.sin(p * Math.PI * 2));
+            if (p < 1) requestAnimationFrame(sweep);
+        })(start);
+        compare.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
 </script>
 {% endblock %}

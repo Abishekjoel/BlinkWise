@@ -1,10 +1,10 @@
-<!DOCTYPE html>
+{% load static %}<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="color-scheme" content="light">
-    <title>{% block title %}RetinaScan{% endblock %}</title>
+    <meta name="color-scheme" content="dark">
+    <title>{% block title %}BlinkWise{% endblock %}</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='11' fill='%232a78d6'/%3E%3Ccircle cx='12' cy='12' r='4.5' fill='white'/%3E%3Ccircle cx='12' cy='12' r='2' fill='%232a78d6'/%3E%3C/svg%3E">
     <style>
         :root {
@@ -666,11 +666,12 @@
 
         {% block extra_style %}{% endblock %}
     </style>
+    <link rel="stylesheet" href="{% static 'detector/css/app.css' %}">
 </head>
 <body>
     <div class="app-shell">
         <aside class="sidebar">
-            <div class="sidebar-brand">
+            <a class="sidebar-brand" href="{% url 'landing' %}" style="text-decoration:none;color:inherit">
                 <div class="logo">
                     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z" stroke="white" stroke-width="1.6"/>
@@ -678,12 +679,16 @@
                     </svg>
                 </div>
                 <div>
-                    <h1>RetinaScan</h1>
-                    <p>Clinical Diagnostic System</p>
+                    <h1>BlinkWise</h1>
+                    <p>See beyond the blink</p>
                 </div>
-            </div>
+            </a>
 
             <nav class="sidebar-nav">
+                <a href="{% url 'landing' %}" class="{% if active_page == 'home' %}active{% endif %}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11 12 3l9 8"/><path d="M5 10v10h14V10"/></svg>
+                    Home
+                </a>
                 <a href="{% url 'index' %}" class="{% if active_page == 'new_analysis' %}active{% endif %}">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M12 8v8M8 12h8"/></svg>
                     New Analysis
@@ -732,7 +737,7 @@
             </main>
 
             <footer class="disclaimer">
-                RetinaScan is a research/educational tool and does not provide a medical diagnosis. Always consult an ophthalmologist for clinical evaluation.
+                BlinkWise is a research/educational tool and does not provide a medical diagnosis. Always consult an ophthalmologist for clinical evaluation.
             </footer>
         </div>
     </div>

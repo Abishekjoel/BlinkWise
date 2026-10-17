@@ -1,0 +1,272 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="dark">
+    <title>BlinkWise &middot; See Beyond the Blink</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='11' fill='%234f7cff'/%3E%3Ccircle cx='12' cy='12' r='4.5' fill='white'/%3E%3Ccircle cx='12' cy='12' r='2' fill='%234f7cff'/%3E%3C/svg%3E">
+    <link rel="stylesheet" href="{% static 'detector/css/app.css' %}">
+    <style>
+        * { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; color: var(--text-primary); overflow-x: hidden; }
+        a { color: inherit; text-decoration: none; }
+        .wrap { max-width: 1180px; margin: 0 auto; padding: 0 28px; }
+
+        [data-severity="No_DR"] { --sev-color: var(--sev-none); }
+        [data-severity="Mild"] { --sev-color: var(--sev-mild); }
+        [data-severity="Moderate"] { --sev-color: var(--sev-moderate); }
+        [data-severity="Severe"] { --sev-color: var(--sev-severe); }
+        [data-severity="Proliferate_DR"] { --sev-color: var(--sev-critical); }
+
+        /* Nav */
+        .nav { position: sticky; top: 0; z-index: 20; backdrop-filter: blur(16px); background: rgba(7,11,22,0.65); border-bottom: 1px solid var(--border-strong); }
+        .nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 66px; }
+        .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.1rem; }
+        .brand .logo { width: 36px; height: 36px; border-radius: 10px; background: var(--grad); display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 22px -4px rgba(79,124,255,.7); }
+        .brand .logo svg { width: 20px; height: 20px; }
+        .nav-links { display: flex; gap: 26px; font-size: .9rem; color: var(--text-secondary); }
+        .nav-links a:hover { color: #fff; }
+        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; border-radius: 12px; font-weight: 700; font-size: .95rem; transition: transform .2s, box-shadow .2s, background .2s; }
+        .btn.solid { background: var(--grad); color: #fff; box-shadow: 0 14px 34px -12px rgba(79,124,255,.9); }
+        .btn.solid:hover { transform: translateY(-3px); box-shadow: 0 18px 40px -10px rgba(79,124,255,1); }
+        .btn.ghost { border: 1px solid var(--border-strong); background: rgba(255,255,255,0.04); color: var(--text-primary); }
+        .btn.ghost:hover { background: rgba(255,255,255,0.1); transform: translateY(-3px); }
+        .btn.small { padding: 9px 18px; font-size: .85rem; }
+        @media (max-width: 760px) { .nav-links { display: none; } }
+
+        /* Hero */
+        .hero { position: relative; padding: 80px 0 90px; }
+        .hero .wrap { display: grid; grid-template-columns: 1.05fr 1fr; gap: 50px; align-items: center; }
+        @media (max-width: 900px) { .hero .wrap { grid-template-columns: 1fr; text-align: center; } .hero-cta, .hero-stats { justify-content: center; } }
+        .pill { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 999px; background: rgba(34,211,238,0.1); border: 1px solid rgba(34,211,238,0.3); color: var(--cyan); font-size: .78rem; font-weight: 700; letter-spacing: .04em; }
+        .pill i { width: 7px; height: 7px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 10px var(--cyan); animation: blink 1.4s infinite; }
+        .hero h1 { font-size: clamp(2.4rem, 5.4vw, 4.2rem); line-height: 1.04; letter-spacing: -0.03em; margin: 18px 0 18px; font-weight: 800; }
+        .grad-text { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; background-size: 200% auto; animation: shine 6s linear infinite; }
+        @keyframes shine { to { background-position: 200% center; } }
+        .hero p.lead { color: var(--text-secondary); font-size: 1.1rem; line-height: 1.65; max-width: 52ch; margin: 0 0 30px; }
+        @media (max-width: 900px) { .hero p.lead { margin-left: auto; margin-right: auto; } }
+        .hero-cta { display: flex; gap: 14px; flex-wrap: wrap; }
+        .hero-stats { display: flex; gap: 34px; margin-top: 44px; flex-wrap: wrap; }
+        .hero-stats b { display: block; font-size: 1.7rem; font-weight: 800; }
+        .hero-stats span { font-size: .78rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em; }
+
+        .eye-stage { position: relative; width: min(100%, 470px); aspect-ratio: 1; margin: 0 auto; }
+        .eye-stage .glow { position: absolute; inset: -12%; background: radial-gradient(circle, rgba(79,124,255,0.5), transparent 62%); filter: blur(30px); animation: breathe 5s ease-in-out infinite; }
+        @keyframes breathe { 50% { transform: scale(1.1); opacity: .8; } }
+        .eye-stage .orbit { position: absolute; inset: -5%; border-radius: 50%; border: 1px dashed rgba(34,211,238,0.35); animation: spin 28s linear infinite; }
+        .eye-stage .orbit.o2 { inset: -14%; border-color: rgba(139,92,246,0.3); animation-duration: 44s; animation-direction: reverse; }
+        .eye-stage .orbit::after { content: ""; position: absolute; top: 8%; left: 50%; width: 12px; height: 12px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 18px var(--cyan); }
+        .eye-stage .orbit.o2::after { background: var(--violet); box-shadow: 0 0 18px var(--violet); }
+        .eye-disc { position: absolute; inset: 0; border-radius: 50%; overflow: hidden; box-shadow: 0 0 0 5px rgba(34,211,238,0.35), 0 40px 90px -20px rgba(0,0,0,.9); animation: floaty 6s ease-in-out infinite; }
+        .eye-disc img { width: 100%; height: 100%; object-fit: cover; display: block; transform: scale(1.04); }
+        .eye-disc .scanline { position: absolute; left: 0; right: 0; height: 22%; top: -25%; background: linear-gradient(180deg, transparent, rgba(34,211,238,0.5), transparent); border-bottom: 2px solid rgba(34,211,238,.9); animation: scan 3.4s ease-in-out infinite; }
+        .eye-disc .grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(34,211,238,.12) 1px, transparent 1px), linear-gradient(90deg, rgba(34,211,238,.12) 1px, transparent 1px); background-size: 12.5% 12.5%; mix-blend-mode: screen; }
+        .chip { position: absolute; padding: 10px 14px; border-radius: 14px; background: rgba(15,24,48,0.85); backdrop-filter: blur(10px); border: 1px solid var(--border-strong); box-shadow: 0 16px 40px -12px rgba(0,0,0,.8); font-size: .78rem; animation: floaty 5s ease-in-out infinite; }
+        .chip b { display: block; font-size: 1.05rem; }
+        .chip small { color: var(--text-muted); }
+        .chip.c1 { top: 6%; right: -6%; animation-delay: -1s; }
+        .chip.c2 { bottom: 12%; left: -8%; animation-delay: -2.5s; }
+        .chip.c3 { bottom: -2%; right: 6%; animation-delay: -4s; }
+        .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; }
+        @media (max-width: 560px) { .chip.c1 { right: 0; } .chip.c2 { left: 0; } }
+
+        /* Sections */
+        section { padding: 80px 0; }
+        .sec-head { text-align: center; max-width: 640px; margin: 0 auto 48px; }
+        .sec-head .eyebrow { color: var(--cyan); font-weight: 700; font-size: .78rem; letter-spacing: .12em; text-transform: uppercase; }
+        .sec-head h2 { font-size: clamp(1.8rem, 3.6vw, 2.7rem); margin: 10px 0 12px; letter-spacing: -0.02em; font-weight: 800; }
+        .sec-head p { color: var(--text-secondary); line-height: 1.65; margin: 0; }
+
+        .glass { background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015)); border: 1px solid var(--border-strong); border-radius: 20px; box-shadow: 0 30px 60px -40px rgba(0,0,0,.9); transition: transform .3s, border-color .3s, box-shadow .3s; }
+        .glass:hover { transform: translateY(-6px); border-color: rgba(34,211,238,0.4); box-shadow: 0 30px 70px -30px rgba(79,124,255,.55); }
+
+        .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; position: relative; }
+        @media (max-width: 820px) { .steps { grid-template-columns: 1fr; } }
+        .step-box { padding: 30px 26px; }
+        .step-box .n { width: 46px; height: 46px; border-radius: 14px; background: var(--grad); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.1rem; margin-bottom: 18px; box-shadow: 0 10px 26px -8px rgba(79,124,255,.8); }
+        .step-box h3 { margin: 0 0 8px; font-size: 1.15rem; }
+        .step-box p { margin: 0; color: var(--text-secondary); line-height: 1.6; font-size: .93rem; }
+
+        .stages { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
+        @media (max-width: 1000px) { .stages { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 640px) { .stages { grid-template-columns: repeat(2, 1fr); } }
+        .stage { overflow: hidden; }
+        .stage .img { aspect-ratio: 1; overflow: hidden; position: relative; }
+        .stage .img img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .6s; }
+        .stage:hover .img img { transform: scale(1.12) rotate(2deg); }
+        .stage .img::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 50%, rgba(7,11,22,.85)); }
+        .stage .body { padding: 16px 16px 18px; }
+        .stage .grade { font-size: .68rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--sev-color); }
+        .stage h4 { margin: 4px 0 6px; font-size: 1rem; }
+        .stage p { margin: 0; font-size: .8rem; color: var(--text-muted); line-height: 1.5; }
+        .stage .bar { height: 4px; border-radius: 999px; background: var(--sev-color); margin-top: 12px; box-shadow: 0 0 14px var(--sev-color); }
+
+        .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        @media (max-width: 900px) { .features { grid-template-columns: 1fr 1fr; } }
+        @media (max-width: 560px) { .features { grid-template-columns: 1fr; } }
+        .feat { padding: 26px; }
+        .feat .ic { width: 48px; height: 48px; border-radius: 14px; background: var(--accent-wash); color: var(--cyan); display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }
+        .feat .ic svg { width: 24px; height: 24px; }
+        .feat h3 { margin: 0 0 6px; font-size: 1.05rem; }
+        .feat p { margin: 0; color: var(--text-secondary); font-size: .9rem; line-height: 1.6; }
+
+        .cta { text-align: center; padding: 70px 30px; border-radius: 28px; position: relative; overflow: hidden; background: linear-gradient(135deg, rgba(34,211,238,0.14), rgba(79,124,255,0.2) 50%, rgba(139,92,246,0.22)); border: 1px solid var(--border-strong); }
+        .cta h2 { font-size: clamp(1.8rem, 3.6vw, 2.7rem); margin: 0 0 12px; font-weight: 800; letter-spacing: -0.02em; }
+        .cta p { color: var(--text-secondary); max-width: 52ch; margin: 0 auto 28px; line-height: 1.6; }
+
+        footer.site { padding: 36px 0 50px; border-top: 1px solid var(--border-strong); color: var(--text-muted); font-size: .82rem; text-align: center; }
+        footer.site p { max-width: 70ch; margin: 8px auto 0; line-height: 1.6; }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="wrap">
+            <a href="{% url 'landing' %}" class="brand">
+                <span class="logo"><svg viewBox="0 0 24 24" fill="none"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z" stroke="white" stroke-width="1.6"/><circle cx="12" cy="12" r="3.2" fill="white"/></svg></span>
+                BlinkWise
+            </a>
+            <div class="nav-links">
+                <a href="#how">How it works</a>
+                <a href="#stages">Stages</a>
+                <a href="#features">Features</a>
+                <a href="{% url 'records' %}">Records</a>
+            </div>
+            <a href="{% url 'index' %}" class="btn solid small">Start analysis</a>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <div class="wrap">
+            <div>
+                <span class="pill"><i></i> AI-POWERED RETINAL SCREENING</span>
+                <h1>See beyond the <span class="grad-text">blink.</span></h1>
+                <p class="lead">Upload a retinal fundus photograph and BlinkWise grades diabetic retinopathy across five stages in seconds, with a heatmap that shows exactly where the model looked.</p>
+                <div class="hero-cta">
+                    <a href="{% url 'index' %}" class="btn solid">
+                        Analyze a retina
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                    </a>
+                    <a href="#how" class="btn ghost">How it works</a>
+                </div>
+                <div class="hero-stats">
+                    <div><b data-count="5">0</b><span>Severity stages</span></div>
+                    <div><b data-count="{{ total_scans }}">0</b><span>Scans analysed</span></div>
+                    <div><b><span style="font-size:inherit;color:inherit;text-transform:none;letter-spacing:0">&lt; 2s</span></b><span>Per image</span></div>
+                </div>
+            </div>
+
+            <div class="eye-stage">
+                <div class="glow"></div>
+                <div class="orbit"></div>
+                <div class="orbit o2"></div>
+                <div class="eye-disc">
+                    <img src="{% static 'detector/img/Moderate.png' %}" alt="Retinal fundus photograph">
+                    <div class="grid"></div>
+                    <div class="scanline"></div>
+                </div>
+                <div class="chip c1"><small>Detected</small><b><span class="dot" style="background:var(--sev-moderate);box-shadow:0 0 10px var(--sev-moderate)"></span>Moderate NPDR</b></div>
+                <div class="chip c2"><small>Heatmap</small><b>Grad-CAM ready</b></div>
+                <div class="chip c3"><small>Confidence</small><b>87.4%</b></div>
+            </div>
+        </div>
+    </header>
+
+    <section id="how">
+        <div class="wrap">
+            <div class="sec-head reveal">
+                <span class="eyebrow">How it works</span>
+                <h2>From photo to grade in three steps</h2>
+                <p>No accounts, no setup. Add the patient, drop the image, read the result.</p>
+            </div>
+            <div class="steps">
+                <div class="glass step-box reveal"><div class="n">1</div><h3>Enter patient details</h3><p>Name, age and gender are stored with the scan so every result is saved in your records.</p></div>
+                <div class="glass step-box reveal"><div class="n">2</div><h3>Upload the fundus image</h3><p>Drag in a retinal photograph. A live preview with a scanning effect confirms it is ready.</p></div>
+                <div class="glass step-box reveal"><div class="n">3</div><h3>Read the AI result</h3><p>See the predicted stage, confidence for every grade, and a Grad-CAM heatmap you can compare side by side.</p></div>
+            </div>
+        </div>
+    </section>
+
+    <section id="stages">
+        <div class="wrap">
+            <div class="sec-head reveal">
+                <span class="eyebrow">Severity grading</span>
+                <h2>Five stages of diabetic retinopathy</h2>
+                <p>BlinkWise classifies every image into one of the standard grades, from healthy to proliferative.</p>
+            </div>
+            <div class="stages">
+                <div class="glass stage reveal" data-severity="No_DR"><div class="img"><img src="{% static 'detector/img/No_DR.png' %}" alt="No DR fundus"></div><div class="body"><span class="grade">Grade 0</span><h4>No DR</h4><p>No visible signs of retinopathy.</p><div class="bar"></div></div></div>
+                <div class="glass stage reveal" data-severity="Mild"><div class="img"><img src="{% static 'detector/img/Mild.png' %}" alt="Mild DR fundus"></div><div class="body"><span class="grade">Grade 1</span><h4>Mild</h4><p>Tiny microaneurysms begin to appear.</p><div class="bar"></div></div></div>
+                <div class="glass stage reveal" data-severity="Moderate"><div class="img"><img src="{% static 'detector/img/Moderate.png' %}" alt="Moderate DR fundus"></div><div class="body"><span class="grade">Grade 2</span><h4>Moderate</h4><p>Blocked vessels, haemorrhages and exudates.</p><div class="bar"></div></div></div>
+                <div class="glass stage reveal" data-severity="Severe"><div class="img"><img src="{% static 'detector/img/Severe.png' %}" alt="Severe DR fundus"></div><div class="body"><span class="grade">Grade 3</span><h4>Severe</h4><p>Widespread blockage, high risk of progression.</p><div class="bar"></div></div></div>
+                <div class="glass stage reveal" data-severity="Proliferate_DR"><div class="img"><img src="{% static 'detector/img/Proliferate_DR.png' %}" alt="Proliferative DR fundus"></div><div class="body"><span class="grade">Grade 4</span><h4>Proliferative</h4><p>New fragile vessels threaten vision.</p><div class="bar"></div></div></div>
+            </div>
+        </div>
+    </section>
+
+    <section id="features">
+        <div class="wrap">
+            <div class="sec-head reveal">
+                <span class="eyebrow">Features</span>
+                <h2>Built for fast, explainable screening</h2>
+            </div>
+            <div class="features">
+                <div class="glass feat reveal"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8Z"/></svg></div><h3>Instant results</h3><p>A trained deep-learning model returns a grade in under two seconds.</p></div>
+                <div class="glass feat reveal"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg></div><h3>Grad-CAM heatmaps</h3><p>See which regions of the retina drove the prediction, with a draggable before / after slider.</p></div>
+                <div class="glass feat reveal"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 15 3-4 3 2 4-6"/></svg></div><h3>Full confidence scores</h3><p>Probabilities for all five stages, not just the top guess.</p></div>
+                <div class="glass feat reveal"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6a2 2 0 0 1 2-2h4l2 2h6a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6Z"/></svg></div><h3>Patient records</h3><p>Every scan is stored. Search, filter by stage and age, and export to CSV.</p></div>
+                <div class="glass feat reveal"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div><h3>Runs locally</h3><p>Images are processed on your own machine and are never sent to a third party.</p></div>
+                <div class="glass feat reveal"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg></div><h3>Responsive design</h3><p>Works on desktop, tablet and phone.</p></div>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <div class="wrap">
+            <div class="cta reveal">
+                <h2>Ready to <span class="grad-text">see more?</span></h2>
+                <p>Upload a fundus image and get a graded result with an explainable heatmap.</p>
+                <a href="{% url 'index' %}" class="btn solid">Start a new analysis</a>
+            </div>
+        </div>
+    </section>
+
+    <footer class="site">
+        <div class="wrap">
+            <div class="brand" style="justify-content:center"><span class="logo"><svg viewBox="0 0 24 24" fill="none"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z" stroke="white" stroke-width="1.6"/><circle cx="12" cy="12" r="3.2" fill="white"/></svg></span> BlinkWise</div>
+            <p>BlinkWise is a research and educational tool and does not provide a medical diagnosis. Always consult an ophthalmologist for clinical evaluation.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Reveal on scroll
+        const io = new IntersectionObserver((entries) => {
+            entries.forEach((e, i) => {
+                if (e.isIntersecting) {
+                    setTimeout(() => e.target.classList.add('in'), (e.target.dataset.delay || 0));
+                    io.unobserve(e.target);
+                }
+            });
+        }, { threshold: 0.12 });
+        document.querySelectorAll('.reveal').forEach((el, i) => { el.dataset.delay = (i % 5) * 90; io.observe(el); });
+
+        // Count up numbers in hero
+        document.querySelectorAll('[data-count]').forEach(el => {
+            const target = parseInt(el.dataset.count, 10), t0 = performance.now();
+            (function step(t) {
+                const p = Math.min(1, (t - t0) / 1400);
+                el.textContent = Math.round(target * (1 - Math.pow(1 - p, 3)));
+                if (p < 1) requestAnimationFrame(step);
+            })(t0);
+        });
+
+        // Subtle parallax tilt on the hero eye
+        const stage = document.querySelector('.eye-stage');
+        window.addEventListener('pointermove', (e) => {
+            const x = (e.clientX / innerWidth - 0.5) * 14, y = (e.clientY / innerHeight - 0.5) * 14;
+            stage.style.transform = 'translate(' + x + 'px,' + y + 'px)';
+        });
+    </script>
+</body>
+</html>
